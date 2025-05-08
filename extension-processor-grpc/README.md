@@ -141,9 +141,14 @@ Once the Load Balancer is fully provisioned (which can take several minutes for 
     # Example assuming you are in the script's base directory
     LB_IP=$(gcloud compute forwarding-rules describe "$FORWARDING_RULE_NAME" --global --format="get(IPAddress)" --project="$PROJECT_ID")
     LB_DOMAIN="$LB_IP.nip.io" # Or your CUSTOM_DOMAIN if you set it manually
+    TOKEN=$(gcloud auth print-identity-token --impersonate-service-account=<SA used in the script or SA which has cloud run Invoker access>)
+    
+    Note: Replace <SERVICE_ACCOUNT_EMAIL_OR_ID> with the email of a service account that has the necessary roles/run.invoker (Cloud Run Invoker) permission for your Cloud Run service, or with the service account used in the script (${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com) if it has been granted roles/run.invoker. The user running this gcloud command must have roles/iam.serviceAccountUser on the service account being impersonated.
+
 
     grpcurl -import-path grpc-backend/examples/protos \
             -proto helloworld.proto \
+            -H "Authorization":"Bearer $TOKEN"
             "$LB_DOMAIN:443" \
             helloworld.Greeter/SayHello
     ```
